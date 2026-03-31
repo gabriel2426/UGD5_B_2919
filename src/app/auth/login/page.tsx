@@ -46,6 +46,7 @@ const LoginPage = () => {
     email: '',
     password: '',
     captchaInput: '',
+    rememberMe: false,
   });
 
   const [errors, setErrors] = useState<ErrorObject>({});
@@ -64,8 +65,11 @@ const LoginPage = () => {
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
     setErrors(prev => ({ ...prev, [name]: undefined }));
   };
 
@@ -97,7 +101,6 @@ const LoginPage = () => {
       }
     }
 
-    // VALIDASI CAPTCHA (Sesuai Gambar)
     if (!formData.captchaInput.trim()) {
       newErrors.captcha = 'Captcha belum diisi';
     } else if (formData.captchaInput !== captcha) {
@@ -108,15 +111,19 @@ const LoginPage = () => {
       setErrors(newErrors);
       const newAttempts = Math.max(0, attempts - 1);
       setAttempts(newAttempts);
-      // Hanya refresh captcha jika input salah, bukan jika kosong (opsional, sesuai UX umum)
       if (newErrors.captcha === 'Captcha salah') refreshCaptcha();
       return;
     }
 
-    if (formData.rememberMe) localStorage.setItem('isLogin', 'true');
-    else sessionStorage.setItem('isLogin', 'true');
+    // SIMPAN STATUS LOGIN
+    if (formData.rememberMe) {
+      localStorage.setItem('isLogin', 'true');
+    } else {
+      sessionStorage.setItem('isLogin', 'true');
+    }
 
-    toast.success('Login Berhasil!', { theme: 'dark' });
+    // NOTIFIKASI BERHASIL LOGIN & REDIRECT
+    toast.success('Login Berhasil! Mengalihkan ke halaman utama...', { theme: 'dark' });
     router.push('/home');
   };
 
@@ -125,7 +132,7 @@ const LoginPage = () => {
     setFormData({ email: '', password: '', captchaInput: '', rememberMe: false });
     setErrors({});
     refreshCaptcha();
-    toast.success('Kesempatan direset!');
+    toast.info('Kesempatan direset!');
   };
 
   const isDisabled = attempts <= 0;
@@ -171,6 +178,25 @@ const LoginPage = () => {
             {errors.password && <p className="text-red-500 text-xs italic">{errors.password}</p>}
           </div>
 
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                id="rememberMe"
+                name="rememberMe"
+                type="checkbox"
+                checked={formData.rememberMe}
+                onChange={handleChange}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-0"
+              />
+              <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700">
+                Ingat Saya
+              </label>
+            </div>
+            <Link href="#" className="text-sm font-bold text-blue-600 hover:underline">
+              Forgot Password?
+            </Link>
+          </div>
+          
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-gray-600">Captcha:</label>

@@ -8,15 +8,22 @@ import PoopSurvivors from '../../components/Game1';
 export default function Home() {
   const router = useRouter();
   const [playing, setPlaying] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
   useEffect(() => {
+    // PROTEKSI URL: Cek apakah data login ada di localStorage atau sessionStorage
     const isLogin =
       localStorage.getItem('isLogin') === 'true' ||
       sessionStorage.getItem('isLogin') === 'true';
     
     if (!isLogin) {
-      router.replace('/auth/login'); 
+      // Jika pengguna mencoba akses langsung /home tanpa login, lempar ke notauthorized
+      router.replace('/auth/not-authorized'); 
+    } else {
+      setIsAuthorized(true);
     }
   }, [router]);
+
   const handleLogout = () => {
     localStorage.removeItem('isLogin');
     sessionStorage.removeItem('isLogin');
@@ -26,6 +33,9 @@ export default function Home() {
     });
     router.push('/auth/login'); 
   };
+
+  // Cegah konten berkedip (flashing) sebelum pengecekan selesai
+  if (!isAuthorized) return null;
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 flex flex-col items-center justify-center p-6 relative">
